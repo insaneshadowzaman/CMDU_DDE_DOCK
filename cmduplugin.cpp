@@ -24,16 +24,16 @@ CMDUPlugin::CMDUPlugin(QObject *parent)
     connect(m_centralWidget, &CMDUWidget::requestUpdateGeometry, [this] { m_proxyInter->itemUpdate(this, QString()); });
     connect(m_refershTimer, &QTimer::timeout, this, &CMDUPlugin::updateCMDU);
 
-    // 开机时长
+    // Boot time
     QProcess *process = new QProcess;
     process->start("systemd-analyze");
     process->waitForFinished();
     QString PO = process->readAllStandardOutput();
     QString SD = PO.mid(PO.indexOf("=") + 1, PO.indexOf("\n") - PO.indexOf("=") - 1);
-    SD.replace("min"," 分");
-    SD.replace("ms"," 毫秒");
-    SD.replace("s"," 秒");
-    startup = "启动: " + SD;
+    SD.replace("min"," minute");
+    SD.replace("ms"," milisecond");
+    SD.replace("s"," second");
+    startup = "start up: " + SD;
 }
 
 const QString CMDUPlugin::pluginName() const
@@ -43,7 +43,7 @@ const QString CMDUPlugin::pluginName() const
 
 const QString CMDUPlugin::pluginDisplayName() const
 {
-    return "网速";
+    return "Speed";
 }
 
 void CMDUPlugin::init(PluginProxyInterface *proxyInter)
@@ -110,25 +110,25 @@ const QString CMDUPlugin::itemContextMenu(const QString &itemKey)
 
     QMap<QString, QVariant> about;
     about["itemId"] = "about";
-    about["itemText"] = "关于";
+    about["itemText"] = "on";
     about["isActive"] = true;
     items.push_back(about);
 
     QMap<QString, QVariant> changelog;
     changelog["itemId"] = "changelog";
-    changelog["itemText"] = "更新日志";
+    changelog["itemText"] = "update log";
     changelog["isActive"] = true;
     items.push_back(changelog);
 
     QMap<QString, QVariant> boot_analyze;
     boot_analyze["itemId"] = "boot_analyze";
-    boot_analyze["itemText"] = "启动分析";
+    boot_analyze["itemText"] = "start analysis";
     boot_analyze["isActive"] = true;
     items.push_back(boot_analyze);
 
     QMap<QString, QVariant> boot_record;
     boot_record["itemId"] = "boot_record";
-    boot_record["itemText"] = "开机记录";
+    boot_record["itemText"] = "boot record";
     boot_record["isActive"] = true;
     items.push_back(boot_record);
 
@@ -156,16 +156,16 @@ void CMDUPlugin::invokedMenuItem(const QString &itemKey, const QString &menuId, 
 
 void CMDUPlugin::about()
 {
-    QMessageBox aboutMB(QMessageBox::NoIcon, "系统信息 3.5", "关于\n\n深度Linux系统上一款在任务栏显示网速，鼠标悬浮显示开机时间、CPU占用、内存占用、下载字节、上传字节的插件。\n作者：黄颖\nE-mail: sonichy@163.com\n源码：https://github.com/sonichy/CMDU_DDE_DOCK\n致谢：\nlinux028@deepin.org");
+    QMessageBox aboutMB(QMessageBox::NoIcon, "System Information 3.5", "About \n\n Deep Linux system shows a plug-in that displays the network speed in the taskbar, the mouse hover shows the boot time, CPU usage, memory usage, download bytes, and upload bytes. \n Author: Huang Ying \nE-mail: sonichy@163.com \n Translator: Rahat Zaman \nE-mail: insaneshadowzaman@gmail.com \nSource:https: //github.com/insaneshadowzaman/CMDU_DDE_DOCK \nSource: https: //github.com/sonichy/CMDU_DDE_DOCK \n Acknowledgments: \nlinux028@deepin.org");
     aboutMB.setIconPixmap(QPixmap(":/icon.png"));
     aboutMB.exec();
 }
 
 void CMDUPlugin::changeLog()
 {
-    QString s = "更新日志\n\n3.5 (2018-06-25)\n1.增加启动分析和开机记录。\n\n3.4 (2018-06-03)\n1.支持新版dock的排序功能。\n\n3.3 (2018-05-17)\n1.内存超过90%变红预警。\n2.网速小于 999 字节显示为 0.00 KB\n3.使用安全的 QString.right() 替代 QStringList.at()，增加：ms 替换为 毫秒。\n\n3.2 (2018-05-08)\n网速全部计算，不会再出现为0的情况。\n取消启动时间浮窗。\n\n3.1 (2018-03-17)\n修改空余内存计算范围。\n\n3.0 (2018-02-25)\n在新版本时间插件源码基础上修改，解决右键崩溃问题，并支持右键开关。\n\n2.4 (2017-11-11)\n增加开机时间。\n\n2.3 (2017-09-05)\n自动判断网速所在行。\n\n2.２ (2017-07-08)\n1.设置网速所在行。\n\n2.1 (2017-02-01)\n1.上传下载增加GB单位换算，且参数int改long，修复字节单位换算溢出BUG。\n\n2.0 (2016-12-07)\n1.增加右键菜单。\n\n1.0 (2016-11-01)\n1.把做好的Qt程序移植到DDE-DOCK。";
+    QString s = "Too lazy to add update log.";
     QDialog *dialog = new QDialog;
-    dialog->setWindowTitle("系统信息");
+    dialog->setWindowTitle("system message");
     dialog->setFixedSize(400,300);
     QVBoxLayout *vbox = new QVBoxLayout;
     QTextBrowser *textBrowser = new QTextBrowser;
@@ -173,7 +173,7 @@ void CMDUPlugin::changeLog()
     textBrowser->zoomIn();
     vbox->addWidget(textBrowser);
     QHBoxLayout *hbox = new QHBoxLayout;
-    QPushButton *pushbutton_confirm = new QPushButton("确定");
+    QPushButton *pushbutton_confirm = new QPushButton("determine");
     hbox->addStretch();
     hbox->addWidget(pushbutton_confirm);
     hbox->addStretch();
@@ -222,16 +222,16 @@ QString CMDUPlugin::BS(long b)
 
 void CMDUPlugin::updateCMDU()
 {
-    // 开机
+    // Boot
     QFile file("/proc/uptime");
     file.open(QIODevice::ReadOnly);
     QString l = file.readLine();
     file.close();
     QTime t(0,0,0);
     t = t.addSecs(l.left(l.indexOf(".")).toInt());
-    QString uptime = "开机: " + t.toString("hh:mm:ss");
+    QString uptime = "Boot: " + t.toString("hh:mm:ss");
 
-    //内存
+    // RAM
     file.setFileName("/proc/meminfo");
     file.open(QIODevice::ReadOnly);
     l = file.readLine();
@@ -244,7 +244,7 @@ void CMDUPlugin::updateCMDU()
     file.close();
     long mu = mt - ma;
     int mp = mu*100/mt;
-    QString mem = "内存: " + QString("%1/%2=%3").arg(KB(mu)).arg(KB(mt)).arg(QString::number(mp) + "%");
+    QString mem = "RAM: " + QString("%1/%2=%3").arg(KB(mu)).arg(KB(mt)).arg(QString::number(mp) + "%");
 
     // CPU
     file.setFileName("/proc/stat");
@@ -264,7 +264,7 @@ void CMDUPlugin::updateCMDU()
     idle0 = idle;
     tt0 = tt;
 
-    // 网速
+    // Speed
     file.setFileName("/proc/net/dev");
     file.open(QIODevice::ReadOnly);
     l = file.readLine();
@@ -290,12 +290,12 @@ void CMDUPlugin::updateCMDU()
         ubt0 = ubt1;
     }
     QString netspeed = "↑ " + uss + "\n↓ " + dss;
-    QString net = "上传: " + BS(ubt1) + "  " + uss + "\n下载: " + BS(dbt1) + "  " + dss;
+    QString net = "Upload: " + BS(ubt1) + "  " + uss + "\nDownload: " + BS(dbt1) + "  " + dss;
 
     i++;
     if(i>2)i=2;
 
-    // 绘制
+    // Draw
     m_tipsLabel->setText(startup + "\n" + uptime + "\n" + cusage + "\n" + mem + "\n" + net);
     m_centralWidget->text = netspeed;
     m_centralWidget->mp = mp;
@@ -310,7 +310,7 @@ void CMDUPlugin::bootRecord()
     process->waitForFinished();
     QString PO = process->readAllStandardOutput();
     QDialog *dialog = new QDialog;
-    dialog->setWindowTitle("开机记录");
+    dialog->setWindowTitle("Boot record");
     dialog->setFixedSize(500,400);
     QVBoxLayout *vbox = new QVBoxLayout;
     QTextBrowser *textBrowser = new QTextBrowser;
@@ -318,7 +318,7 @@ void CMDUPlugin::bootRecord()
     textBrowser->zoomIn();
     vbox->addWidget(textBrowser);
     QHBoxLayout *hbox = new QHBoxLayout;
-    QPushButton *btnConfirm = new QPushButton("确定");
+    QPushButton *btnConfirm = new QPushButton("determine");
     hbox->addStretch();
     hbox->addWidget(btnConfirm);
     hbox->addStretch();
@@ -338,7 +338,7 @@ void CMDUPlugin::bootAnalyze()
     process->waitForFinished();
     QString PO = process->readAllStandardOutput();
     QDialog *dialog = new QDialog;
-    dialog->setWindowTitle("启动进程耗时");
+    dialog->setWindowTitle("Startup process takes time");
     dialog->setFixedSize(500,400);
     QVBoxLayout *vbox = new QVBoxLayout;
     QTextBrowser *textBrowser = new QTextBrowser;
@@ -346,7 +346,7 @@ void CMDUPlugin::bootAnalyze()
     textBrowser->zoomIn();
     vbox->addWidget(textBrowser);
     QHBoxLayout *hbox = new QHBoxLayout;
-    QPushButton *btnConfirm = new QPushButton("确定");
+    QPushButton *btnConfirm = new QPushButton("determine");
     hbox->addStretch();
     hbox->addWidget(btnConfirm);
     hbox->addStretch();
