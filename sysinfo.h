@@ -3,6 +3,9 @@
 
 #include <QTimer>
 
+// 需要平滑计算网速时可以打开
+#define __OPEN_NET_SPEED_SMOOTH__    0
+
 class SysInfo
 {
 public:
