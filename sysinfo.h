@@ -5,6 +5,8 @@
 
 // 需要平滑计算网速时可以打开
 #define __OPEN_NET_SPEED_SMOOTH__    0
+// 网速平滑处理时，需要保存的数据数
+#define __NET_SPEED_COUNT__          3
 
 class SysInfo
 {

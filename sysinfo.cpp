@@ -142,26 +142,27 @@ void SysInfo::getNetSpeed(long int &upspeed, long int &downspeed)
 
 #if __OPEN_NET_SPEED_SMOOTH__
     // 网速有时候变化很大，为了平滑网速，需要求一段时间的平均值
-    static long int upspeedarray[10] = {0};
-    static long int downspeedarray[10] = {0};
+
+    static long int upspeedarray[__NET_SPEED_COUNT__] = {0};
+    static long int downspeedarray[__NET_SPEED_COUNT__] = {0};
     static int arrayhead = 0;
     
     upspeedarray[arrayhead] = upspeed;
     downspeedarray[arrayhead] = downspeed;
     arrayhead ++;
-    if (arrayhead >= 10)
+    if (arrayhead >= __NET_SPEED_COUNT__)
         arrayhead = 0;
     
     upspeed = 0;
     downspeed = 0;
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < __NET_SPEED_COUNT__; i++)
     {
         upspeed += upspeedarray[i];
         downspeed += downspeedarray[i];
     }
     // 头9秒的网速不准确
-    upspeed = upspeed / 10;
-    downspeed = downspeed / 10;
+    upspeed = upspeed / __NET_SPEED_COUNT__;
+    downspeed = downspeed / __NET_SPEED_COUNT__;
 #endif // __OPEN_NET_SPEED_SMOOTH__
 }
 
