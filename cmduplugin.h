@@ -1,10 +1,11 @@
 #ifndef CMDUPlugin_H
 #define CMDUPlugin_H
 
-#include "dde-dock/pluginsiteminterface.h"
-#include "cmduwidget.h"
 #include <QTimer>
 #include <QLabel>
+#include "dde-dock/pluginsiteminterface.h"
+#include "cmduwidget.h"
+#include "sysinfo.h"
 
 class CMDUPlugin : public QObject, PluginsItemInterface
 {
@@ -38,21 +39,17 @@ private slots:
     void updateCMDU();
 
 private:
-    long int i, db, ub, dbt, ubt, dbt1, ubt1, dbt0, ubt0, tt0, idle0;
+    SysInfo m_sysinfo;
+
     QPointer<CMDUWidget> m_centralWidget;
     QPointer<QLabel> m_tipsLabel;
     QTimer *m_refershTimer;
     QSettings m_settings;
-    QString KB(long k);
-    QString BS(long b);
-    QString NB(long b);
-    QString startup;
-    //QLabel *labelStartupDuration;
+
     void about();
     void changeLog();
     void bootRecord();
     void bootAnalyze();
-
 };
 
 #endif // CMDUPlugin_H

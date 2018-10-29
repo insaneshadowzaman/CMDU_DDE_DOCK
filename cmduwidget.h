@@ -14,7 +14,12 @@ public:
     bool enabled();
     void setEnabled(const bool b);
     QString text;
-    int mp, cp;
+    void setCPUPercent(int cpupercent);
+    void setMemPercent(int mempercent);
+
+    void enterEvent(QEvent *event);
+    void leaveEvent(QEvent *event);
+    bool getMouseEnter();
 
 signals:
     void requestUpdateGeometry() const;
@@ -33,7 +38,13 @@ private:
     QSettings m_settings;
     bool m_24HourFormat;
     QFont font;
+    
+    QString m_textup;
+    QString m_textdown;
+    int m_cpupercent;
+    int m_mempercent;
 
+    bool m_mouseenter;
 };
 
 #endif // CMDUWIDGET_H

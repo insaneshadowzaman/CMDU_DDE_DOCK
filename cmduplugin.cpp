@@ -1,4 +1,3 @@
-#include "cmduplugin.h"
 #include <QLabel>
 #include <QApplication>
 #include <QDesktopWidget>
@@ -8,13 +7,15 @@
 #include <QTextBrowser>
 #include <QPushButton>
 
+#include "cmduplugin.h"
+#include "sysinfo.h"
+
 CMDUPlugin::CMDUPlugin(QObject *parent)
     : QObject(parent),
       m_tipsLabel(new QLabel),
       m_refershTimer(new QTimer(this)),
       m_settings("deepin", "dde-dock-cmdu")
 {
-    i=db=ub=dbt=ubt=dbt1=ubt1=dbt0=ubt0=0;
     m_tipsLabel->setObjectName("cmdu");
     m_tipsLabel->setStyleSheet("color:white; padding:0px 3px;");
     m_refershTimer->setInterval(1000);
@@ -24,16 +25,7 @@ CMDUPlugin::CMDUPlugin(QObject *parent)
     connect(m_centralWidget, &CMDUWidget::requestUpdateGeometry, [this] { m_proxyInter->itemUpdate(this, QString()); });
     connect(m_refershTimer, &QTimer::timeout, this, &CMDUPlugin::updateCMDU);
 
-    // 开机时长
-    QProcess *process = new QProcess;
-    process->start("systemd-analyze");
-    process->waitForFinished();
-    QString PO = process->readAllStandardOutput();
-    QString SD = PO.mid(PO.indexOf("=") + 1, PO.indexOf("\n") - PO.indexOf("=") - 1);
-    SD.replace("min"," 分");
-    SD.replace("ms"," 毫秒");
-    SD.replace("s"," 秒");
-    startup = "启动: " + SD;
+    m_sysinfo = SysInfo();
 }
 
 const QString CMDUPlugin::pluginName() const
@@ -186,151 +178,51 @@ void CMDUPlugin::changeLog()
     }
 }
 
-QString CMDUPlugin::KB(long k)
-{
-    QString s = "";
-    if(k > 999999){
-        s = QString::number(k/(1024*1024.0),'f',2) + "GB";
-    }else{
-        if(k > 999){
-            s = QString::number(k/1024.0,'f',2) + "MB";
-        }else{
-            s = QString::number(k/1.0,'f',2) + "KB";
-        }
-    }
-    return s;
-}
-
-QString CMDUPlugin::BS(long b)
-{
-    QString s = "";
-    if(b > 999999999){
-        //s = QString("%1").arg(b/(1024*1024*1024.0), 6, 'f', 2, QLatin1Char(' ')) + "GB";
-        s = QString::number(b/(1024*1024*1024.0), 'f', 2) + "GB";
-    }else{
-        if(b > 999999){
-            //s = QString("%1").arg(b/(1024*1024.0), 6, 'f', 2, QLatin1Char(' ')) + "MB";
-            s = QString::number(b/(1024*1024.0), 'f', 2) + "MB";
-        }else{
-            if(b>999){
-                //s = QString("%1").arg(b/1024.0, 6, 'f', 2, QLatin1Char(' ')) + "KB";
-                s = QString::number(b/(1024.0), 'f',2) + "KB";
-            }else{
-                s = b + "B";
-            }
-        }
-    }
-    return s;
-}
-
-QString CMDUPlugin::NB(long b)
-{
-    QString s = "";
-    if(b>999){
-        s = QString("%1").arg(b/1024, 5, 'f', 0, QLatin1Char(' ')) + "KB";
-    }else{
-        s = QString("%1").arg(0, 5, 'f', 0, QLatin1Char(' ')) + "KB";
-    }
-    return s;
-}
-
 void CMDUPlugin::updateCMDU()
 {
-    // 开机
-    QFile file("/proc/uptime");
-    file.open(QIODevice::ReadOnly);
-    QString l = file.readLine();
-    file.close();
-    QTime t(0,0,0);
-    t = t.addSecs(l.left(l.indexOf(".")).toInt());
-    QString uptime = "开机: " + t.toString("hh:mm:ss");
-
-    //内存
-    file.setFileName("/proc/meminfo");
-    file.open(QIODevice::ReadOnly);
-    l = file.readLine();
-    long mt = l.replace("MemTotal:","").replace("kB","").replace(" ","").toLong();
-    l = file.readLine();
-    l = file.readLine();
-    long ma = l.replace("MemAvailable:","").replace("kB","").replace(" ","").toLong();
-    l = file.readLine();
-    l = file.readLine();
-    file.close();
-    long mu = mt - ma;
-    int mp = mu*100/mt;
-    QString mem = "内存: " + QString("%1 / %2 = %3").arg(KB(mu)).arg(KB(mt)).arg(QString::number(mp) + "%");
-
-    // CPU
-    file.setFileName("/proc/stat");
-    file.open(QIODevice::ReadOnly);
-    l = file.readLine();
-    QByteArray ba;
-    ba = l.toLatin1();
-    const char *ch;
-    ch = ba.constData();
-    char cpu[5];
-    long user,nice,sys,idle,iowait,irq,softirq,tt;
-    sscanf(ch,"%s%ld%ld%ld%ld%ld%ld%ld",cpu,&user,&nice,&sys,&idle,&iowait,&irq,&softirq);
-    tt = user + nice + sys + idle + iowait + irq + softirq;
-    file.close();
-    QString cusage = "";
-    int cp = ((tt-tt0)-(idle-idle0))*100/(tt-tt0);
-    if(i>0) cusage = "CPU: " + QString::number(cp) + "%";
-    idle0 = idle;
-    tt0 = tt;
-
+    static bool first = true;
     // 网速
-    file.setFileName("/proc/net/dev");
-    file.open(QIODevice::ReadOnly);
-    l = file.readLine();
-    l = file.readLine();
-    dbt1 = ubt1 = 0;
-    while(!file.atEnd()){
-        l = file.readLine();
-        QStringList list = l.split(QRegExp("\\s{1,}"));
-        db = list.at(1).toLong();
-        ub = list.at(9).toLong();
-        dbt1 += db;
-        ubt1 += ub;
-    }
-    file.close();
-    QString dss = "";
-    QString uss = "";
-    if (i > 0) {
-        long ds = dbt1 - dbt0;
-        long us = ubt1 - ubt0;
-        dss = NB(ds) + "/s";
-        uss = NB(us) + "/s";
-        dbt0 = dbt1;
-        ubt0 = ubt1;
-    }
-    QString netspeed = "↑" + uss + "\n↓" + dss;
-    QString net = "上传: " + BS(ubt1) + "  " + uss + "\n下载: " + BS(dbt1) + "  " + dss;
+    long int upspeed, downspeed;
+    long int totalup, totaldown;
+    m_sysinfo.getNetSpeed(upspeed, downspeed);
+    m_sysinfo.getNetTotalUpDown(totalup, totaldown);
+    QString upspeedstring = m_sysinfo.bytetoKBMBGBforSpeed(upspeed) + "/s";
+    QString downspeedstring = m_sysinfo.bytetoKBMBGBforSpeed(downspeed) + "/s";
 
-    i++;
-    if (i>2) i = 2;
+    QString netspeed = upspeedstring + "↑\n" + downspeedstring + "↓";
+ 
+    // QLabel显示信息
+    if ((m_centralWidget->getMouseEnter() == true) || first){
+        first = false;
+        QString startup = "启动: " + m_sysinfo.getStartupFinishedTime();
+        QString uptime = "开机: " + m_sysinfo.getUptime();
+        QString cpuusage = "CPU: " + m_sysinfo.getCPUString();
+        QString memusage = "内存: " + m_sysinfo.getMemoryString();
+        // 流量及网速
+        QString tipnet = "上传: " + m_sysinfo.bytetoKBMBGB(totalup) + "  " + upspeedstring + "\n下载: " + m_sysinfo.bytetoKBMBGB(totaldown) + "  " + downspeedstring;
+        m_tipsLabel->setText(startup + "\n" + uptime + "\n" + cpuusage + "\n" + memusage + "\n" + tipnet);
+    } else {
+        m_sysinfo.getCPUString();
+        m_sysinfo.getMemoryString();
+    }
 
-    // 绘制
-    m_tipsLabel->setText(startup + "\n" + uptime + "\n" + cusage + "\n" + mem + "\n" + net);
     m_centralWidget->text = netspeed;
-    m_centralWidget->mp = mp;
-    m_centralWidget->cp = cp;
-    m_centralWidget->update();
+    m_centralWidget->setCPUPercent(m_sysinfo.getCPUPercent());
+    m_centralWidget->setMemPercent(m_sysinfo.getMemoryPercent());
 
+    m_centralWidget->update();
 }
 
 void CMDUPlugin::bootRecord()
 {
-    QProcess *process = new QProcess;
-    process->start("last reboot");
-    process->waitForFinished();
-    QString PO = process->readAllStandardOutput();
+    QString bootrecord = m_sysinfo.getBootRecord();
+
     QDialog *dialog = new QDialog;
     dialog->setWindowTitle("开机记录");
     dialog->setFixedSize(500,400);
     QVBoxLayout *vbox = new QVBoxLayout;
     QTextBrowser *textBrowser = new QTextBrowser;
-    textBrowser->setText(PO);
+    textBrowser->setText(bootrecord);
     textBrowser->zoomIn();
     vbox->addWidget(textBrowser);
     QHBoxLayout *hbox = new QHBoxLayout;
@@ -349,16 +241,14 @@ void CMDUPlugin::bootRecord()
 
 void CMDUPlugin::bootAnalyze()
 {
-    QProcess *process = new QProcess;
-    process->start("systemd-analyze blame");
-    process->waitForFinished();
-    QString PO = process->readAllStandardOutput();
+    QString bootanalyze = m_sysinfo.getBootAnalyze();
+
     QDialog *dialog = new QDialog;
     dialog->setWindowTitle("启动进程耗时");
     dialog->setFixedSize(500,400);
     QVBoxLayout *vbox = new QVBoxLayout;
     QTextBrowser *textBrowser = new QTextBrowser;
-    textBrowser->setText(PO);
+    textBrowser->setText(bootanalyze);
     textBrowser->zoomIn();
     vbox->addWidget(textBrowser);
     QHBoxLayout *hbox = new QHBoxLayout;

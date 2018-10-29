@@ -14,11 +14,13 @@ DISTFILES       += \
 
 HEADERS += \
     cmduplugin.h \
-    cmduwidget.h
+    cmduwidget.h \
+    sysinfo.h
 
 SOURCES += \
     cmduplugin.cpp \
-    cmduwidget.cpp
+    cmduwidget.cpp \
+    sysinfo.cpp
 
 target.path = $${PREFIX}/lib/dde-dock/plugins/
 INSTALLS += target

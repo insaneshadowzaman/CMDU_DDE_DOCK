@@ -13,9 +13,23 @@ CMDUWidget::CMDUWidget(QWidget *parent)
       m_settings("deepin", "dde-dock-cmdu")
 {
     font.setFamily("Noto Mono");
-    text = " ↑    0KB/s \n ↓    0KB/s ";
-    mp = 0;
-    cp = 0;
+    m_textup = "9.99KB/s↑   ";
+    m_textdown = "9.99KB/s↓   ";
+    // "9.99KB/s↑   \n9.99KB/s↓   "
+    text = m_textup + "\n" + m_textdown;
+    m_cpupercent = 0;
+    m_mempercent = 0;
+    m_mouseenter = false;
+}
+
+void CMDUWidget::setCPUPercent(int cpupercent)
+{
+    m_cpupercent = cpupercent;
+}
+
+void CMDUWidget::setMemPercent(int mempercent)
+{
+    m_mempercent = mempercent;
 }
 
 bool CMDUWidget::enabled()
@@ -31,7 +45,7 @@ void CMDUWidget::setEnabled(const bool b)
 QSize CMDUWidget::sizeHint() const
 {
     QFontMetrics FM(font);
-    return FM.boundingRect(" ↑    0KB/s ").size() + QSize(0, FM.boundingRect(" ↓    0KB/s ").height());
+    return FM.boundingRect(m_textup).size() + QSize(0, FM.boundingRect(m_textdown).height());
 }
 
 void CMDUWidget::resizeEvent(QResizeEvent *e)
@@ -43,19 +57,24 @@ void CMDUWidget::paintEvent(QPaintEvent *e)
 {
     Q_UNUSED(e);
     QPainter painter(this);
+
+    // 显示网速    
     painter.setRenderHint(QPainter::Antialiasing);
-    //if(mp >= 90){
-    //    painter.fillRect(rect(), QBrush(Qt::red));
-    //}
     painter.setPen(Qt::white);
     painter.setFont(font);
-    painter.drawText(rect().adjusted(2,0,0,0), Qt::AlignLeft | Qt::AlignVCenter, text);
-    if(mp < 90){
-        painter.fillRect(0, height()*(100-mp)/100, 2, height()*mp/100, Qt::white);
-    }else{
-        painter.fillRect(0, height()*(100-mp)/100, 2, height()*mp/100, Qt::red);
-    }
-    painter.fillRect(width()-2, height()*(100-cp)/100, 2, height()*cp/100, Qt::white);
+    //painter.drawText(rect().adjusted(2,0,0,0), Qt::AlignLeft | Qt::AlignVCenter, text);
+    painter.drawText( 2, 0, width() - 12, height(), Qt::AlignRight | Qt::AlignVCenter, text); 
+
+    // 显示CPU和内存占用彩条
+    QLinearGradient linearGradient(0, height(), 0, 0);
+    linearGradient.setColorAt(0,Qt::green);
+    linearGradient.setColorAt(1,Qt::red);
+    painter.setBrush(linearGradient);
+    painter.setPen(Qt::NoPen);
+    painter.setRenderHint(QPainter::Antialiasing, false);
+
+    painter.drawRect(width() - 8, height()*(100-m_cpupercent)/100, 3, height()*m_cpupercent/100);
+    painter.drawRect(width() - 3, height()*(100-m_mempercent)/100, 3, height()*m_mempercent/100);    
 }
 
 void CMDUWidget::mousePressEvent(QMouseEvent *e)
@@ -71,4 +90,21 @@ void CMDUWidget::mousePressEvent(QMouseEvent *e)
     }
 
     QWidget::mousePressEvent(e);
+}
+
+void CMDUWidget::enterEvent(QEvent *event)
+{
+    m_mouseenter = true;
+    QWidget::enterEvent(event);
+}
+
+void CMDUWidget::leaveEvent(QEvent *event)
+{
+    m_mouseenter = false;
+    QWidget::leaveEvent(event);
+}
+
+bool CMDUWidget::getMouseEnter()
+{
+    return m_mouseenter;
 }
