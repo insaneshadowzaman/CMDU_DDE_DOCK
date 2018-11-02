@@ -3,6 +3,9 @@
 #include <QFile>
 #include <QTime>
 #include <sys/time.h>
+#include <QDir>
+#include <QDirIterator>
+#include <vector>
 
 SysInfo::SysInfo()
 {
@@ -253,4 +256,87 @@ QString SysInfo::getBootAnalyze()
         m_bootanalyze = process->readAllStandardOutput();
     }
     return m_bootanalyze;
+}
+
+QString SysInfo::getBusyProcesses()
+{
+    QDir dir("/proc");
+    QStringList pidlist = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+
+    // 清空exist
+    for(int i = 0; i < pvstrproc.size(); i++) {
+        pvstrproc[i]->exist = false;
+    }
+
+    for (int i = 0; i < pidlist.size(); i++) {
+        bool ok;
+        pidlist[i].toInt(&ok, 10);
+        if (ok) {
+            // 查找pid，未找到则创建
+            int curri = 0;
+            for(curri = 0; curri < pvstrproc.size(); curri++) {
+                if (pvstrproc[curri]->pid == pidlist[i]) {
+                    pvstrproc[curri]->exist = true;
+                    break;
+                }
+            }
+            // 为新进程新建记录
+            if (curri == pvstrproc.size()) {
+                pvstrproc.push_back(new struct strproc);
+                pvstrproc[curri]->pid = new QString(pidlist[i]);
+                pvstrproc[curri]->name = NULL;
+                pvstrproc[curri]->exist = true;
+                pvstrproc[curri]->bticks = 0;
+                pvstrproc[curri]->percent = 0;
+            }
+
+            // CPU：/proc/15128/stat
+            QFile rfile("/proc/" + pidlist[i] + "/" + "stat");
+            rfile.open(QIODevice::ReadOnly);
+            QString line = rfile.readLine();
+            rfile.close();
+            QStringList array = line.split(" ");
+            // 0为PID，1为名字，14为utime，15为stime
+            if (pvstrproc[curri]->name == QString()) {
+                pvstrproc[curri]->name = new QString(array[1].mid(1, array[1].count() - 2));
+            }
+            long int cticks = array[14].toLong() + array[15].toLong();
+            pvstrproc[curri]->percent = (int)(cticks - pvstrproc[curri]->bticks);
+            pvstrproc[curri]->bticks = cticks;
+        }
+    }
+
+    // 删除已经被关闭进程的记录
+    for(int i = pvstrproc.size() - 1; i >= 0; i--) {
+        if (pvstrproc[i]->exist == false) {
+            delete pvstrproc[i]->pid;
+            delete pvstrproc[i]->name;
+            delete pvstrproc[i];
+            pvstrproc.erase(pvstrproc.begin() + i);
+        }
+    }
+
+    // 找出占CPU最高的三个进程
+    struct strproc t[3] = {0};
+    for(int i = 0; i < pvstrproc.size(); i++) {
+        for (int j = 0; j < 3; j++) {
+            if (pvstrproc[i]->percent > t[j].percent) {
+                for (int k = 2; k > j; k--) {
+                    t[k] = t[k - 1];
+                }
+                t[j] = *pvstrproc[i];
+                break;
+            }
+        }
+    }
+
+    /*return t[0].pid + QString("\t") + t[0].name + "\t\t" + QString().number(t[0].percent) + "%\n" + \
+            t[1].pid + "\t" + t[1].name + "\t\t" + QString().number(t[1].percent) + "%\n" + \
+            t[2].pid + "\t" + t[2].name + "\t\t" + QString().number(t[2].percent) + "%";*/
+    /*return QString("%1 %2 %3%\n").arg(t[0].pid->toLocal8Bit().data(), 5, QChar(' ')).arg(t[0].name->toLocal8Bit().data(), 16, QChar(' ')).arg(t[0].percent, 3, 10, QChar(' ')) + \
+            QString("%1 %2 %3%\n").arg(t[1].pid->toLocal8Bit().data(), 5, QChar(' ')).arg(t[1].name->toLocal8Bit().data(), 16, QChar(' ')).arg(t[1].percent, 3, 10, QChar(' ')) + \
+            QString("%1 %2 %3%").arg(t[2].pid->toLocal8Bit().data(), 5, QChar(' ')).arg(t[2].name->toLocal8Bit().data(), 16, QChar(' ')).arg(t[2].percent, 3, 10, QChar(' '));*/
+    return QString("<tr><td>%1</td><td>%2</td><td align='right'>%3% </td></tr>").arg(t[0].pid->toLocal8Bit().data()).arg(t[0].name->toLocal8Bit().data()).arg(t[0].percent) + \
+            QString("<tr><td>%1</td><td>%2</td><td align='right'>%3% </td></tr>").arg(t[1].pid->toLocal8Bit().data()).arg(t[1].name->toLocal8Bit().data()).arg(t[1].percent) + \
+            QString("<tr><td>%1</td><td>%2</td><td align='right'>%3% </td></tr>").arg(t[2].pid->toLocal8Bit().data()).arg(t[2].name->toLocal8Bit().data()).arg(t[2].percent);
 }

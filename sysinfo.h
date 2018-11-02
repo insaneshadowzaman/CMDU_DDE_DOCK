@@ -4,9 +4,20 @@
 #include <QTimer>
 
 // 需要平滑计算网速时可以打开
-#define __OPEN_NET_SPEED_SMOOTH__    0
+#define __OPEN_NET_SPEED_SMOOTH__    1
 // 网速平滑处理时，需要保存的数据数
 #define __NET_SPEED_COUNT__          3
+
+struct strproc {
+    QString *pid;
+    QString *name;
+    // 进程总会变动，需要剔除和加入，每次使用前把所有exist置0，统计完CPU占用后，再检索，为0删除
+    bool exist;
+    // 之前的 utime + stime
+    long int bticks;
+    // CPU占用
+    int percent;
+};
 
 class SysInfo
 {
@@ -28,6 +39,7 @@ public:
 
     QString getBootRecord();
     QString getBootAnalyze();
+    QString getBusyProcesses();
 
 private:
     QString m_startupfinishedtime;
@@ -37,6 +49,9 @@ private:
     long int m_beforetotalup, m_beforetotaldown;
     QString m_bootrecord;
     QString m_bootanalyze;
+
+    // 需要是否空间
+    std::vector<struct strproc *> pvstrproc;
 };
 
 #endif // SYSINFO_H

@@ -194,13 +194,16 @@ void CMDUPlugin::updateCMDU()
     // QLabel显示信息
     if ((m_centralWidget->getMouseEnter() == true) || first){
         first = false;
-        QString startup = "启动: " + m_sysinfo.getStartupFinishedTime();
-        QString uptime = "开机: " + m_sysinfo.getUptime();
-        QString cpuusage = "CPU: " + m_sysinfo.getCPUString();
-        QString memusage = "内存: " + m_sysinfo.getMemoryString();
+        QString startup = QString() + "<tr><td colspan='3'>" + "启动: " + m_sysinfo.getStartupFinishedTime() + "</td></tr>";
+        QString uptime = QString() + "<tr><td colspan='3'>" + "开机: " + m_sysinfo.getUptime() + "</td></tr>";
+        QString cpuusage = QString() + "<tr><td colspan='3'>" + "CPU: " + m_sysinfo.getCPUString() + "</td></tr>";
+        QString memusage = QString() + "<tr><td colspan='3'>" + "内存: " + m_sysinfo.getMemoryString() + "</td></tr>";
         // 流量及网速
-        QString tipnet = "上传: " + m_sysinfo.bytetoKBMBGB(totalup) + "  " + upspeedstring + "\n下载: " + m_sysinfo.bytetoKBMBGB(totaldown) + "  " + downspeedstring;
-        m_tipsLabel->setText(startup + "\n" + uptime + "\n" + cpuusage + "\n" + memusage + "\n" + tipnet);
+        QString tipnet = QString() + "<tr><td colspan='3'>" + "上传: " + m_sysinfo.bytetoKBMBGB(totalup) + "  " + upspeedstring + "</td></tr>" + "<tr><td colspan='3'>下载: " + m_sysinfo.bytetoKBMBGB(totaldown) + "  " + downspeedstring + "</td></tr>";
+
+        QString busyprocesses = QString() + "<tr><td colspan='3'>" + "CPU占用前三：" + "</td></tr>" + m_sysinfo.getBusyProcesses();
+        // m_tipsLabel->setText(startup + "\n" + uptime + "\n" + cpuusage + "\n" + memusage + "\n" + tipnet + "\n" + busyprocesses);
+        m_tipsLabel->setText("<table border='0'>" + startup + uptime + cpuusage + memusage + tipnet + busyprocesses + "</table>");
     } else {
         m_sysinfo.getCPUString();
         m_sysinfo.getMemoryString();
