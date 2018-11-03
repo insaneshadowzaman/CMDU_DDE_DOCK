@@ -330,12 +330,6 @@ QString SysInfo::getBusyProcesses()
         }
     }
 
-    /*return t[0].pid + QString("\t") + t[0].name + "\t\t" + QString().number(t[0].percent) + "%\n" + \
-            t[1].pid + "\t" + t[1].name + "\t\t" + QString().number(t[1].percent) + "%\n" + \
-            t[2].pid + "\t" + t[2].name + "\t\t" + QString().number(t[2].percent) + "%";*/
-    /*return QString("%1 %2 %3%\n").arg(t[0].pid->toLocal8Bit().data(), 5, QChar(' ')).arg(t[0].name->toLocal8Bit().data(), 16, QChar(' ')).arg(t[0].percent, 3, 10, QChar(' ')) + \
-            QString("%1 %2 %3%\n").arg(t[1].pid->toLocal8Bit().data(), 5, QChar(' ')).arg(t[1].name->toLocal8Bit().data(), 16, QChar(' ')).arg(t[1].percent, 3, 10, QChar(' ')) + \
-            QString("%1 %2 %3%").arg(t[2].pid->toLocal8Bit().data(), 5, QChar(' ')).arg(t[2].name->toLocal8Bit().data(), 16, QChar(' ')).arg(t[2].percent, 3, 10, QChar(' '));*/
     return QString("<tr><td>%1</td><td>%2</td><td align='right'>%3% </td></tr>").arg(t[0].pid->toLocal8Bit().data()).arg(t[0].name->toLocal8Bit().data()).arg(t[0].percent) + \
             QString("<tr><td>%1</td><td>%2</td><td align='right'>%3% </td></tr>").arg(t[1].pid->toLocal8Bit().data()).arg(t[1].name->toLocal8Bit().data()).arg(t[1].percent) + \
             QString("<tr><td>%1</td><td>%2</td><td align='right'>%3% </td></tr>").arg(t[2].pid->toLocal8Bit().data()).arg(t[2].name->toLocal8Bit().data()).arg(t[2].percent);

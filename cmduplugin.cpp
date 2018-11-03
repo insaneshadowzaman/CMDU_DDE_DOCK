@@ -202,7 +202,6 @@ void CMDUPlugin::updateCMDU()
         QString tipnet = QString() + "<tr><td colspan='3'>" + "上传: " + m_sysinfo.bytetoKBMBGB(totalup) + "  " + upspeedstring + "</td></tr>" + "<tr><td colspan='3'>下载: " + m_sysinfo.bytetoKBMBGB(totaldown) + "  " + downspeedstring + "</td></tr>";
 
         QString busyprocesses = QString() + "<tr><td colspan='3'>" + "CPU占用前三：" + "</td></tr>" + m_sysinfo.getBusyProcesses();
-        // m_tipsLabel->setText(startup + "\n" + uptime + "\n" + cpuusage + "\n" + memusage + "\n" + tipnet + "\n" + busyprocesses);
         m_tipsLabel->setText("<table border='0'>" + startup + uptime + cpuusage + memusage + tipnet + busyprocesses + "</table>");
     } else {
         m_sysinfo.getCPUString();
