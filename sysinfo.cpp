@@ -297,10 +297,19 @@ QString SysInfo::getBusyProcesses()
             rfile.close();
             QStringList array = line.split(" ");
             // 0为PID，1为名字，14为utime，15为stime
-            if (pvstrproc[curri]->name == QString()) {
-                pvstrproc[curri]->name = new QString(array[1].mid(1, array[1].count() - 2));
+            // 需要处理的特殊情况(Web Content)
+            long int cticks;
+            if (array[1].endsWith(")")) {
+                if (pvstrproc[curri]->name == QString()) {
+                    pvstrproc[curri]->name = new QString(array[1].mid(1, array[1].count() - 2));
+                }
+                cticks = array[14].toLong() + array[15].toLong();
+            } else {
+                if (pvstrproc[curri]->name == QString()) {                    
+                    pvstrproc[curri]->name = new QString((array[1] + " " + array[2]).mid(1, array[1].count() + array[2].count() - 1));
+                }
+                cticks = array[15].toLong() + array[16].toLong();
             }
-            long int cticks = array[14].toLong() + array[15].toLong();
             pvstrproc[curri]->percent = (int)(cticks - pvstrproc[curri]->bticks);
             pvstrproc[curri]->bticks = cticks;
         }
