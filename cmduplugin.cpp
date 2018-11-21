@@ -35,7 +35,7 @@ const QString CMDUPlugin::pluginName() const
 
 const QString CMDUPlugin::pluginDisplayName() const
 {
-    return "网速";
+    return "Speed";
 }
 
 void CMDUPlugin::init(PluginProxyInterface *proxyInter)
@@ -102,25 +102,25 @@ const QString CMDUPlugin::itemContextMenu(const QString &itemKey)
 
     QMap<QString, QVariant> about;
     about["itemId"] = "about";
-    about["itemText"] = "关于";
+    about["itemText"] = "on";
     about["isActive"] = true;
     items.push_back(about);
 
     QMap<QString, QVariant> changelog;
     changelog["itemId"] = "changelog";
-    changelog["itemText"] = "更新日志";
+    changelog["itemText"] = "update log";
     changelog["isActive"] = true;
     items.push_back(changelog);
 
     QMap<QString, QVariant> boot_analyze;
     boot_analyze["itemId"] = "boot_analyze";
-    boot_analyze["itemText"] = "启动分析";
+    boot_analyze["itemText"] = "start analysis";
     boot_analyze["isActive"] = true;
     items.push_back(boot_analyze);
 
     QMap<QString, QVariant> boot_record;
     boot_record["itemId"] = "boot_record";
-    boot_record["itemText"] = "开机记录";
+    boot_record["itemText"] = "boot record";
     boot_record["isActive"] = true;
     items.push_back(boot_record);
 
@@ -181,7 +181,7 @@ void CMDUPlugin::changeLog()
 void CMDUPlugin::updateCMDU()
 {
     static bool first = true;
-    // 网速
+    // Speed
     long int upspeed, downspeed;
     long int totalup, totaldown;
     m_sysinfo.getNetSpeed(upspeed, downspeed);
@@ -191,17 +191,17 @@ void CMDUPlugin::updateCMDU()
 
     QString netspeed = upspeedstring + "↑\n" + downspeedstring + "↓";
  
-    // QLabel显示信息
+    // QLabel Display information
     if ((m_centralWidget->getMouseEnter() == true) || first){
         first = false;
-        QString startup = QString() + "<tr><td colspan='3'>" + "启动: " + m_sysinfo.getStartupFinishedTime() + "</td></tr>";
-        QString uptime = QString() + "<tr><td colspan='3'>" + "开机: " + m_sysinfo.getUptime() + "</td></tr>";
+        QString startup = QString() + "<tr><td colspan='3'>" + "START UP: " + m_sysinfo.getStartupFinishedTime() + "</td></tr>";
+        QString uptime = QString() + "<tr><td colspan='3'>" + "BOOT: " + m_sysinfo.getUptime() + "</td></tr>";
         QString cpuusage = QString() + "<tr><td colspan='3'>" + "CPU: " + m_sysinfo.getCPUString() + "</td></tr>";
-        QString memusage = QString() + "<tr><td colspan='3'>" + "内存: " + m_sysinfo.getMemoryString() + "</td></tr>";
-        // 流量及网速
-        QString tipnet = QString() + "<tr><td colspan='3'>" + "上传: " + m_sysinfo.bytetoKBMBGB(totalup) + "  " + upspeedstring + "</td></tr>" + "<tr><td colspan='3'>下载: " + m_sysinfo.bytetoKBMBGB(totaldown) + "  " + downspeedstring + "</td></tr>";
+        QString memusage = QString() + "<tr><td colspan='3'>" + "RAM: " + m_sysinfo.getMemoryString() + "</td></tr>";
+        // Traffic and network speed
+        QString tipnet = QString() + "<tr><td colspan='3'>" + "Upload: " + m_sysinfo.bytetoKBMBGB(totalup) + "  " + upspeedstring + "</td></tr>" + "<tr><td colspan='3'>download: " + m_sysinfo.bytetoKBMBGB(totaldown) + "  " + downspeedstring + "</td></tr>";
 
-        QString busyprocesses = QString() + "<tr><td colspan='3'>" + "CPU占用前三：" + "</td></tr>" + m_sysinfo.getBusyProcesses();
+        QString busyprocesses = QString() + "<tr><td colspan='3'>" + "The CPU occupies the first three:" + "</td></tr>" + m_sysinfo.getBusyProcesses();
         m_tipsLabel->setText("<table border='0'>" + startup + uptime + cpuusage + memusage + tipnet + busyprocesses + "</table>");
     } else {
         m_sysinfo.getCPUString();
@@ -220,7 +220,7 @@ void CMDUPlugin::bootRecord()
     QString bootrecord = m_sysinfo.getBootRecord();
 
     QDialog *dialog = new QDialog;
-    dialog->setWindowTitle("开机记录");
+    dialog->setWindowTitle("Boot record");
     dialog->setFixedSize(500,400);
     QVBoxLayout *vbox = new QVBoxLayout;
     QTextBrowser *textBrowser = new QTextBrowser;
@@ -228,7 +228,7 @@ void CMDUPlugin::bootRecord()
     textBrowser->zoomIn();
     vbox->addWidget(textBrowser);
     QHBoxLayout *hbox = new QHBoxLayout;
-    QPushButton *btnConfirm = new QPushButton("确定");
+    QPushButton *btnConfirm = new QPushButton("determine");
     hbox->addStretch();
     hbox->addWidget(btnConfirm);
     hbox->addStretch();
@@ -246,7 +246,7 @@ void CMDUPlugin::bootAnalyze()
     QString bootanalyze = m_sysinfo.getBootAnalyze();
 
     QDialog *dialog = new QDialog;
-    dialog->setWindowTitle("启动进程耗时");
+    dialog->setWindowTitle("Startup process takes time");
     dialog->setFixedSize(500,400);
     QVBoxLayout *vbox = new QVBoxLayout;
     QTextBrowser *textBrowser = new QTextBrowser;
@@ -254,7 +254,7 @@ void CMDUPlugin::bootAnalyze()
     textBrowser->zoomIn();
     vbox->addWidget(textBrowser);
     QHBoxLayout *hbox = new QHBoxLayout;
-    QPushButton *btnConfirm = new QPushButton("确定");
+    QPushButton *btnConfirm = new QPushButton("determine");
     hbox->addStretch();
     hbox->addWidget(btnConfirm);
     hbox->addStretch();

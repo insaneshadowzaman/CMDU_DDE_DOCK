@@ -3,19 +3,19 @@
 
 #include <QTimer>
 
-// 需要平滑计算网速时可以打开
+// Can be opened when you need to smoothly calculate the network speed
 #define __OPEN_NET_SPEED_SMOOTH__    1
-// 网速平滑处理时，需要保存的数据数
+// The number of data to be saved when the network speed is smoothed
 #define __NET_SPEED_COUNT__          3
 
 struct strproc {
     QString *pid;
     QString *name;
-    // 进程总会变动，需要剔除和加入，每次使用前把所有exist置0，统计完CPU占用后，再检索，为0删除
+    // The process will always change, need to be culled and added, set all exist to 0 before each use, after counting the CPU usage, then retrieve, delete 0
     bool exist;
-    // 之前的 utime + stime
+    // previous utime + stime
     long int bticks;
-    // CPU占用
+    // CPU usage
     int percent;
 };
 
@@ -50,7 +50,7 @@ private:
     QString m_bootrecord;
     QString m_bootanalyze;
 
-    // 需要是否空间
+    // Need space?
     std::vector<struct strproc *> pvstrproc;
 };
 

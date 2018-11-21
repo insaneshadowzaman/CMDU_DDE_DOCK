@@ -36,16 +36,16 @@ const QString SysInfo::getStartupFinishedTime()
         QString pread = process->readAllStandardOutput();
 
         m_startupfinishedtime = pread.mid(pread.indexOf("=") + 1, pread.indexOf("\n") - pread.indexOf("=") - 1);
-        m_startupfinishedtime.replace("min"," 分");
-        m_startupfinishedtime.replace("ms"," 毫秒");
-        m_startupfinishedtime.replace("s"," 秒");
+        m_startupfinishedtime.replace("min"," Minute");
+        m_startupfinishedtime.replace("ms"," millisecond");
+        m_startupfinishedtime.replace("s"," second");
     }
     return m_startupfinishedtime;
 }
 
 const QString SysInfo::getUptime()
 {
-    // 开机到现在运行了多久
+    // How long has it been running since it was turned on?
     QFile rfile("/proc/uptime");
     rfile.open(QIODevice::ReadOnly);
     QString line = rfile.readLine();
@@ -89,15 +89,15 @@ int SysInfo::getMemoryPercent()
 
 const QString SysInfo::getMemoryString()
 {
-    // 内存
+    // RAM
     QFile rfile("/proc/meminfo");
     rfile.open(QIODevice::ReadOnly);
 
-    //总内存
+    //Total memory
     QString line = rfile.readLine();
     long memtotal = line.replace("MemTotal:", "").replace("kB", "").replace(" ", "").toLong();
 
-    //剩余内存
+    //Remaining memory
     line = rfile.readLine();
     line = rfile.readLine();
     long memavilable = line.replace("MemAvailable:","").replace("kB","").replace(" ","").toLong();
@@ -112,16 +112,16 @@ const QString SysInfo::getMemoryString()
 
 void SysInfo::getNetSpeed(long int &upspeed, long int &downspeed)
 {
-    // 为了网速不变来变去，精确计算时间
+    // In order to change the network speed, calculate the time accurately.
     double currentclock = (double)clock();
     long int mselapsed = (long int)(currentclock - m_beforeclock);
     m_beforeclock = currentclock;
 
-    // 网速
+    // Speed
     QFile rfile("/proc/net/dev");
     rfile.open(QIODevice::ReadOnly);
 
-    // 跳过头两行
+    // Skip the first two lines
     QString line = rfile.readLine();
     line = rfile.readLine();
 
@@ -135,16 +135,16 @@ void SysInfo::getNetSpeed(long int &upspeed, long int &downspeed)
     }
     rfile.close();
 
-    // 计算网速
+    // Calculating network speed
     upspeed = (currenttotalup - m_beforetotalup) * 1000 / mselapsed;
     downspeed = (currenttotaldown - m_beforetotaldown) * 1000 / mselapsed;
 
-    // 保存当前总上传下载
+    // Save current total upload download
     m_beforetotalup = currenttotalup;
     m_beforetotaldown = currenttotaldown;
 
 #if __OPEN_NET_SPEED_SMOOTH__
-    // 网速有时候变化很大，为了平滑网速，需要求一段时间的平均值
+    // The speed of the network sometimes varies greatly. In order to smooth the speed of the network, it is required to average the time.
 
     static long int upspeedarray[__NET_SPEED_COUNT__] = {0};
     static long int downspeedarray[__NET_SPEED_COUNT__] = {0};
@@ -163,7 +163,7 @@ void SysInfo::getNetSpeed(long int &upspeed, long int &downspeed)
         upspeed += upspeedarray[i];
         downspeed += downspeedarray[i];
     }
-    // 头9秒的网速不准确
+    // The first 9 seconds of network speed is not accurate
     upspeed = upspeed / __NET_SPEED_COUNT__;
     downspeed = downspeed / __NET_SPEED_COUNT__;
 #endif // __OPEN_NET_SPEED_SMOOTH__
@@ -175,7 +175,7 @@ void SysInfo::getNetTotalUpDown(long int &totalup, long int &totaldown)
     totaldown = m_beforetotaldown;
 }
 
-// 之前的网速显示固定位KB，可以删除了
+// The previous network speed shows a fixed bit KB, which can be deleted.
 QString SysInfo::bytetoKB(long byte)
 {
     QString s = "";
@@ -201,7 +201,7 @@ QString SysInfo::bytetoKBMBGB(long byte)
     return s;
 }
 
-// 网速显示专用，最多显示1.23宽，最大值999，最小值0.01KB，要不动来动去的
+// Dedicated to the network speed display, up to 1.23 wide, maximum 999, minimum 0.01 KB, or not to move
 QString SysInfo::bytetoKBMBGBforSpeed(long byte)
 {
     QString s = "";
@@ -223,13 +223,13 @@ QString SysInfo::bytetoKBMBGBforSpeed(long byte)
         unit = "KB";
     }
 
-    // 小于等于999
+    // Less than or equal to 999
     if (result < 1000)
         s = QString::number(result / 100.0, 'f', 2) + unit;
-    // 小于等于9999
+    // Less than or equal to 9999
     else if (result < 10000)
         s = QString::number(result / 100.0, 'f', 1) + unit;
-    // 小于等于99999
+    // Less than or equal to 99999
     else if (result < 100000)
         s = QString::number(result / 100.0, 'f', 0) + unit;
 
@@ -263,7 +263,7 @@ QString SysInfo::getBusyProcesses()
     QDir dir("/proc");
     QStringList pidlist = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
 
-    // 清空exist
+    // Empty exist
     for(int i = 0; i < pvstrproc.size(); i++) {
         pvstrproc[i]->exist = false;
     }
@@ -272,7 +272,7 @@ QString SysInfo::getBusyProcesses()
         bool ok;
         pidlist[i].toInt(&ok, 10);
         if (ok) {
-            // 查找pid，未找到则创建
+            // Find pid, create if not found
             int curri = 0;
             for(curri = 0; curri < pvstrproc.size(); curri++) {
                 if (pvstrproc[curri]->pid == pidlist[i]) {
@@ -280,7 +280,7 @@ QString SysInfo::getBusyProcesses()
                     break;
                 }
             }
-            // 为新进程新建记录
+            // Create a new record for the new process
             if (curri == pvstrproc.size()) {
                 pvstrproc.push_back(new struct strproc);
                 pvstrproc[curri]->pid = new QString(pidlist[i]);
@@ -296,8 +296,8 @@ QString SysInfo::getBusyProcesses()
             QString line = rfile.readLine();
             rfile.close();
             QStringList array = line.split(" ");
-            // 0为PID，1为名字，14为utime，15为stime
-            // 需要处理的特殊情况(Web Content)
+            // 0 is PID, 1 is the name, 14 is utime, 15 is stime
+            // Special circumstances that need to be addressed(Web Content)
             long int cticks;
             if (array[1].endsWith(")")) {
                 if (pvstrproc[curri]->name == QString()) {
@@ -315,7 +315,7 @@ QString SysInfo::getBusyProcesses()
         }
     }
 
-    // 删除已经被关闭进程的记录
+    // Delete records of processes that have been closed
     for(int i = pvstrproc.size() - 1; i >= 0; i--) {
         if (pvstrproc[i]->exist == false) {
             delete pvstrproc[i]->pid;
@@ -325,7 +325,7 @@ QString SysInfo::getBusyProcesses()
         }
     }
 
-    // 找出占CPU最高的三个进程
+    // Find the three processes that account for the highest CPU
     struct strproc t[3] = {0};
     for(int i = 0; i < pvstrproc.size(); i++) {
         for (int j = 0; j < 3; j++) {
